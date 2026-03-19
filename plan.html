@@ -6,6 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="css/style.css">
+  <!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+ integrity="sha256-o0sHk6DkzLJvPi1hA6RHa0hQ8IDh0kzxY+g2bK7r3xo=" crossorigin=""/>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+ integrity="sha256-oP6HI9z1+ps5Fl2Z7sh2T+4UjF87Qfp3+TPi0vWg5Mo=" crossorigin=""></script>
 </head>
 <body class="bg-gray-50 text-gray-800">
 
@@ -36,6 +43,12 @@
     <h3 class="text-xl font-bold mt-6">Saved Plan:</h3>
     <div id="planDisplay" class="mt-2 text-gray-700"></div>
   </div>
+  <section class="mt-10 max-w-2xl mx-auto bg-white p-6 rounded-xl shadow">
+  <h3 class="text-2xl font-bold mb-4">Find a Nearby Safe Spot</h3>
+  <input type="text" id="addressInput" placeholder="Enter your address" class="w-full p-2 border rounded mb-4">
+  <button onclick="findSafeSpot()" class="w-full bg-green-500 text-white py-2 rounded hover:bg-green-600">Find Safe Spot</button>
+  <div id="map" class="mt-4" style="height: 400px;"></div>
+</section>
 </main>
 
 <footer class="bg-gray-200 text-center p-6 mt-12">
