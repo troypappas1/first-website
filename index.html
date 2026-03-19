@@ -2,136 +2,58 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Healthy Habit Tracker</title>
+  <title>Emergency Preparedness Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      background: #f0f4f8;
-      color: #333;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #4caf50;
-      color: white;
-      padding: 20px;
-      text-align: center;
-    }
-    main {
-      max-width: 600px;
-      margin: 30px auto;
-      padding: 20px;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
-    h2 {
-      text-align: center;
-    }
-    input, button {
-      padding: 10px;
-      font-size: 16px;
-      margin: 5px 0;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-    button {
-      cursor: pointer;
-      background: #4caf50;
-      color: white;
-      border: none;
-    }
-    button:hover {
-      background: #45a049;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      background: #e0f2f1;
-      margin: 8px 0;
-      padding: 10px;
-      border-radius: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .completed {
-      text-decoration: line-through;
-      color: #777;
-    }
-  </style>
+
+  <!-- Tailwind for modern styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- Favicon -->
+  <link rel="icon" href="assets/logo.png" type="image/png">
 </head>
-<body>
+<body class="bg-gray-50 text-gray-800">
 
-<header>
-  <h1>Healthy Habit Tracker</h1>
-  <p>Build good habits, one day at a time!</p>
-</header>
+  <header class="bg-red-600 text-white shadow-md">
+    <div class="container mx-auto flex justify-between items-center p-6">
+      <h1 class="text-2xl font-bold">Emergency Preparedness Hub</h1>
+      <nav class="space-x-4">
+        <a href="index.html" class="hover:text-gray-200">Home</a>
+        <a href="plan.html" class="hover:text-gray-200">Planner</a>
+        <a href="resources.html" class="hover:text-gray-200">Resources</a>
+        <a href="about.html" class="hover:text-gray-200">About</a>
+      </nav>
+    </div>
+  </header>
 
-<main>
-  <h2>Add a new habit</h2>
-  <input type="text" id="habitInput" placeholder="Enter a habit (e.g., Drink water)">
-  <button onclick="addHabit()">Add Habit</button>
+  <main class="container mx-auto p-8 text-center">
+    <h2 class="text-4xl font-bold mb-4">Prepare Today, Stay Safe Tomorrow</h2>
+    <p class="mb-6 text-gray-700">Interactive tools and guides to help you and your family be ready for any disaster.</p>
+    <a href="plan.html" class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition">Start Planning</a>
 
-  <h2>My Habits</h2>
-  <ul id="habitList"></ul>
-</main>
+    <section class="mt-12 grid md:grid-cols-3 gap-8">
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="text-xl font-bold mb-2">Emergency Checklists</h3>
+        <p>Step-by-step lists for floods, earthquakes, fires, and more.</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="text-xl font-bold mb-2">Interactive Planner</h3>
+        <p>Create a custom emergency plan and track supplies for your household.</p>
+      </div>
+      <div class="bg-white rounded-xl shadow p-6">
+        <h3 class="text-xl font-bold mb-2">Resources & Tips</h3>
+        <p>Access guides, tutorials, and real-time info to stay prepared.</p>
+      </div>
+    </section>
+  </main>
 
-<script>
-  // Load habits from localStorage
-  let habits = JSON.parse(localStorage.getItem('habits')) || [];
+  <footer class="bg-gray-200 text-center p-6 mt-20">
+    &copy; 2026 Emergency Preparedness Hub
+  </footer>
 
-  function saveHabits() {
-    localStorage.setItem('habits', JSON.stringify(habits));
-  }
-
-  function renderHabits() {
-    const list = document.getElementById('habitList');
-    list.innerHTML = '';
-    habits.forEach((habit, index) => {
-      const li = document.createElement('li');
-      li.className = habit.completed ? 'completed' : '';
-      li.innerHTML = `
-        ${habit.name} 
-        <span>
-          <button onclick="toggleComplete(${index})">✔️</button>
-          <button onclick="deleteHabit(${index})">🗑️</button>
-        </span>
-      `;
-      list.appendChild(li);
-    });
-  }
-
-  function addHabit() {
-    const input = document.getElementById('habitInput');
-    const name = input.value.trim();
-    if (name === '') return alert('Enter a habit!');
-    habits.push({ name, completed: false });
-    input.value = '';
-    saveHabits();
-    renderHabits();
-  }
-
-  function toggleComplete(index) {
-    habits[index].completed = !habits[index].completed;
-    saveHabits();
-    renderHabits();
-  }
-
-  function deleteHabit(index) {
-    if(confirm('Delete this habit?')) {
-      habits.splice(index, 1);
-      saveHabits();
-      renderHabits();
-    }
-  }
-
-  // Initial render
-  renderHabits();
-</script>
-
+  <!-- Optional JS -->
+  <script src="js/planner.js"></script>
 </body>
 </html>
