@@ -2,67 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Emergency Planner</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Tailwind CSS for styling -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="css/style.css">
-
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <title>Emergency Shelter Planner</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    #map { height: 500px; margin-top: 10px; }
+    #suggestions { list-style: none; padding: 0; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; }
+    #suggestions li { padding: 5px; cursor: pointer; }
+    #suggestions li:hover { background-color: #f0f0f0; }
+    #cityInfo { margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 5px; }
+    select, input { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
+    label { font-weight: bold; margin-top: 10px; display: block; }
+  </style>
 </head>
-<body class="bg-gray-50 text-gray-800">
+<body>
+  <h1>Emergency Shelter Planner</h1>
 
-<header class="bg-red-600 text-white shadow-md">
-  <div class="container mx-auto flex justify-between items-center p-6">
-    <h1 class="text-2xl font-bold">Emergency Planner</h1>
+  <div>
+    <label for="cityInput">Enter your city:</label>
+    <input type="text" id="cityInput" placeholder="Type a city name..." autocomplete="off">
+    <ul id="suggestions"></ul>
   </div>
-</header>
 
-<main class="container mx-auto p-8">
+  <div>
+    <label for="disasterSelect">Select Disaster:</label>
+    <select id="disasterSelect">
+      <option value="">-- Choose Disaster --</option>
+      <option value="Earthquake">Earthquake</option>
+      <option value="Flood">Flood</option>
+      <option value="Fire">Fire</option>
+      <option value="Storm">Storm</option>
+      <option value="General">General Emergency</option>
+    </select>
+  </div>
 
-  <!-- City search + map -->
-  <section class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow">
-    <h3 class="text-2xl font-bold mb-4">Find a Safe Spot by City</h3>
-    
-    <input type="text" id="cityInput" placeholder="Type a city" class="w-full p-2 border rounded mb-2" autocomplete="off">
-    <ul id="suggestions" class="bg-white border rounded max-h-48 overflow-y-auto mb-2"></ul>
-    <div id="map" style="height: 400px;"></div>
-  </section>
+  <div id="map"></div>
+  <div id="cityInfo">
+    <p>City information and recommended shelters will appear here.</p>
+  </div>
 
-  <!-- Emergency info section -->
-  <section class="max-w-2xl mx-auto bg-white p-6 rounded-xl shadow mt-8">
-    <h3 class="text-2xl font-bold mb-4">Emergency Info</h3>
-    <div id="cityInfo" class="text-gray-700 mb-4">
-      <p>Type a city above to see its emergency information and safe spot.</p>
-    </div>
-    <div class="mb-2">
-  <label for="disasterSelect" class="font-semibold">Select Disaster:</label>
-  <select id="disasterSelect" class="w-full p-2 border rounded">
-    <option value="">-- Choose Disaster --</option>
-    <option value="Earthquake">Earthquake</option>
-    <option value="Flood">Flood</option>
-    <option value="Fire">Fire</option>
-    <option value="Storm">Storm</option>
-    <option value="General">General Emergency</option>
-  </select>
-</div>
-  </section>
-
-  
-
-</main>
-
-<footer class="bg-gray-200 text-center p-6 mt-12">
-  &copy; 2026 Emergency Preparedness Hub
-</footer>
-
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- Planner JS -->
-<script src="js/planner.js"></script>
-
+  <script src="js/planner.js"></script>
 </body>
 </html>
