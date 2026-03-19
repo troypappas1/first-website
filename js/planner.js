@@ -1,64 +1,12 @@
-// Initialize Leaflet map
-const map = L.map('map').setView([20, 0], 2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+const disasterSelect = document.getElementById('disasterSelect');
 
-const cityInput = document.getElementById('cityInput');
-const suggestions = document.getElementById('suggestions');
-const infoDiv = document.getElementById('cityInfo');
-let mapMarkers = [];
-
-// Debounce input
-let debounceTimer;
-cityInput.addEventListener('input', () => {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(fetchCitySuggestions, 300);
-});
-
-// Free city autocomplete from Photon API
-async function fetchCitySuggestions() {
-  const value = cityInput.value.trim();
-  suggestions.innerHTML = '';
-  if (!value) return;
-
-  try {
-    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(value)}&limit=5`);
-    const data = await res.json();
-    if (!data.features) return;
-
-    data.features.forEach(place => {
-      const cityName = place.properties.name;
-      const country = place.properties.country;
-      if (!cityName) return;
-
-      const li = document.createElement('li');
-      li.textContent = cityName + (country ? `, ${country}` : '');
-      li.className = 'p-2 cursor-pointer hover:bg-gray-200';
-      li.onclick = () => {
-        cityInput.value = li.textContent;
-        suggestions.innerHTML = '';
-        findShelters(place);
-      };
-      suggestions.appendChild(li);
-    });
-  } catch (err) {
-    console.error(err);
-  }
-}
-
-// Use Overpass API to find real shelters near a selected city
 async function findShelters(place) {
   const [lon, lat] = place.geometry.coordinates;
-
-  // Map center
   map.setView([lat, lon], 12);
 
-  // Build a small bounding box (about ~0.05 degrees ~ ~5km)
   const delta = 0.05;
   const bbox = `${lat - delta},${lon - delta},${lat + delta},${lon + delta}`;
 
-  // Overpass query to find OSM elements tagged as shelters/emergency facilities
   const query = `
     [out:json][timeout:25];
     (
@@ -76,7 +24,6 @@ async function findShelters(place) {
     const res = await fetch(url);
     const data = await res.json();
 
-    // Clear old markers
     mapMarkers.forEach(m => map.removeLayer(m));
     mapMarkers = [];
 
@@ -87,46 +34,61 @@ async function findShelters(place) {
         let shelterLat = el.lat || el.center?.lat;
         let shelterLon = el.lon || el.center?.lon;
         let name = el.tags?.name || "Shelter";
+        let type = el.tags?.amenity || el.tags?.emergency || el.tags?.building || "general";
         if (shelterLat && shelterLon) {
-          shelters.push({ name, lat: shelterLat, lon: shelterLon });
+          shelters.push({ name, lat: shelterLat, lon: shelterLon, type });
         }
       });
     }
 
-    // If no real shelters found, fallback to generic ones
+    // fallback if no shelters
     if (shelters.length === 0) {
       shelters = [
-        { name: "Community Shelter", lat: lat + 0.01, lon: lon + 0.01 },
-        { name: "Emergency Center", lat: lat - 0.01, lon: lon - 0.01 }
+        { name: "Community Shelter", lat: lat + 0.01, lon: lon + 0.01, type: "general" },
+        { name: "Emergency Center", lat: lat - 0.01, lon: lon - 0.01, type: "general" }
       ];
     }
 
+    // Filter shelters based on selected disaster
+    const disaster = disasterSelect.value || "General";
+    let filteredShelters = shelters;
+
+    if (disaster === "Fire") {
+      filteredShelters = shelters.filter(s => s.type === "fire_station" || s.type === "shelter" || s.type === "public");
+    } else if (disaster === "Earthquake") {
+      filteredShelters = shelters.filter(s => s.type === "shelter" || s.type === "public");
+    } else if (disaster === "Flood") {
+      // Simple approach: pick shelters north of city (higher lat)
+      filteredShelters = shelters.filter(s => s.lat >= lat);
+    }
+
+    if (filteredShelters.length === 0) filteredShelters = shelters; // fallback
+
     // Add markers
-    shelters.forEach(spot => {
+    filteredShelters.forEach(spot => {
       const marker = L.marker([spot.lat, spot.lon])
                       .addTo(map)
-                      .bindPopup(spot.name);
+                      .bindPopup(`${spot.name} (${spot.type})`);
       mapMarkers.push(marker);
     });
 
-    // Sort by closest distance
-    shelters.sort((a, b) => {
+    // Sort by closest to city center
+    filteredShelters.sort((a, b) => {
       const da = Math.hypot(a.lat - lat, a.lon - lon);
       const db = Math.hypot(b.lat - lat, b.lon - lon);
       return da - db;
     });
 
-    const recommended = shelters[0];
+    const recommended = filteredShelters[0];
 
     infoDiv.innerHTML = `
       <p><strong>City:</strong> ${place.properties.name}, ${place.properties.country || ""}</p>
-      <p><strong>Nearest Shelter:</strong> ${recommended.name}</p>
-      <p><em>Showing ${shelters.length} locations within ~5km</em></p>
+      <p><strong>Disaster:</strong> ${disaster}</p>
+      <p><strong>Recommended Shelter:</strong> ${recommended.name} (${recommended.type})</p>
+      <p><em>Showing ${filteredShelters.length} shelters suitable for this disaster</em></p>
     `;
   } catch (err) {
     console.error("Overpass error:", err);
-    infoDiv.innerHTML = `
-      <p>Error finding shelters.</p>
-    `;
+    infoDiv.innerHTML = `<p>Error finding shelters.</p>`;
   }
 }
