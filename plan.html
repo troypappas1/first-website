@@ -1,48 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Emergency Shelter Planner</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    #map { height: 500px; margin-top: 10px; }
-    #suggestions { list-style: none; padding: 0; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; }
-    #suggestions li { padding: 5px; cursor: pointer; }
-    #suggestions li:hover { background-color: #f0f0f0; }
-    #cityInfo { margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 5px; }
-    select, input { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
-    label { font-weight: bold; margin-top: 10px; display: block; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emergency Shelter Planner</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  #map { height: 500px; margin-top: 10px; }
+  #suggestions { list-style: none; padding: 0; border: 1px solid #ccc; max-height: 150px; overflow-y: auto; }
+  #suggestions li { padding: 5px; cursor: pointer; }
+  #suggestions li:hover { background-color: #f0f0f0; }
+  #cityInfo { margin-top: 15px; background: #f9f9f9; padding: 10px; border-radius: 5px; }
+  select, input { width: 100%; padding: 8px; margin-top: 5px; border-radius: 4px; border: 1px solid #ccc; }
+  label { font-weight: bold; margin-top: 10px; display: block; }
+</style>
 </head>
 <body>
-  <h1>Emergency Shelter Planner</h1>
 
-  <div>
-    <label for="cityInput">Enter your city:</label>
-    <input type="text" id="cityInput" placeholder="Type a city name..." autocomplete="off">
-    <ul id="suggestions"></ul>
-  </div>
+<h1>Emergency Shelter Planner</h1>
 
-  <div>
-    <label for="disasterSelect">Select Disaster:</label>
-    <select id="disasterSelect">
-      <option value="">-- Choose Disaster --</option>
-      <option value="Earthquake">Earthquake</option>
-      <option value="Flood">Flood</option>
-      <option value="Fire">Fire</option>
-      <option value="Storm">Storm</option>
-      <option value="General">General Emergency</option>
-    </select>
-  </div>
+<div>
+  <label for="cityInput">Enter your city:</label>
+  <input type="text" id="cityInput" placeholder="Type a city name..." autocomplete="off">
+  <ul id="suggestions"></ul>
+</div>
 
-  <div id="map"></div>
-  <div id="cityInfo">
-    <p>City information and recommended shelters will appear here.</p>
-  </div>
+<div>
+  <label for="disasterSelect">Select Disaster:</label>
+  <select id="disasterSelect">
+    <option value="">-- Choose Disaster --</option>
+    <option value="Earthquake">Earthquake</option>
+    <option value="Flood">Flood</option>
+    <option value="Fire">Fire</option>
+    <option value="Storm">Storm</option>
+    <option value="General">General Emergency</option>
+  </select>
+</div>
 
-  <script src="js/planner.js"></script>
+<div id="map"></div>
+
+<div id="cityInfo">
+  <p>City information and recommended shelters will appear here.</p>
+</div>
+
+<!-- JS must load after all elements exist -->
+<script src="js/planner.js"></script>
+
 </body>
 </html>
