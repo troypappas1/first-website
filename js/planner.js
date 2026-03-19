@@ -1,5 +1,5 @@
 // Initialize Leaflet map
-const map = L.map('map').setView([20, 0], 2); // World view
+const map = L.map('map').setView([20, 0], 2);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
@@ -9,39 +9,27 @@ const suggestions = document.getElementById('suggestions');
 const infoDiv = document.getElementById('cityInfo');
 let mapMarkers = [];
 
-// Example disaster data
-const disasterData = {
-  "San Francisco": ["Earthquakes", "Wildfires"],
-  "Tokyo": ["Earthquakes", "Typhoons"],
-  "New York": ["Hurricanes", "Winter Storms"],
-  "London": ["Floods", "Storms"],
-  "Sydney": ["Bushfires", "Heatwaves"],
-  "Paris": ["Floods", "Storms"]
-};
-
-// Debounce input to avoid too many API calls
+// Debounce input
 let debounceTimer;
 cityInput.addEventListener('input', () => {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(fetchCitySuggestions, 300);
 });
 
-// Fetch city suggestions from Photon API
+// Free city autocomplete from Photon API
 async function fetchCitySuggestions() {
   const value = cityInput.value.trim();
   suggestions.innerHTML = '';
   if (!value) return;
 
   try {
-    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(value)}&limit=5`;
-    const res = await fetch(url);
+    const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(value)}&limit=5`);
     const data = await res.json();
-
     if (!data.features) return;
 
     data.features.forEach(place => {
       const cityName = place.properties.name;
-      const country = place.properties.country || "";
+      const country = place.properties.country;
       if (!cityName) return;
 
       const li = document.createElement('li');
@@ -50,7 +38,7 @@ async function fetchCitySuggestions() {
       li.onclick = () => {
         cityInput.value = li.textContent;
         suggestions.innerHTML = '';
-        showSafeSpots(place);
+        findShelters(place);
       };
       suggestions.appendChild(li);
     });
@@ -59,37 +47,86 @@ async function fetchCitySuggestions() {
   }
 }
 
-// Show map markers and emergency info
-function showSafeSpots(place) {
+// Use Overpass API to find real shelters near a selected city
+async function findShelters(place) {
   const [lon, lat] = place.geometry.coordinates;
 
-  // Center map
+  // Map center
   map.setView([lat, lon], 12);
 
-  // Remove previous markers
-  mapMarkers.forEach(m => map.removeLayer(m));
-  mapMarkers = [];
+  // Build a small bounding box (about ~0.05 degrees ~ ~5km)
+  const delta = 0.05;
+  const bbox = `${lat - delta},${lon - delta},${lat + delta},${lon + delta}`;
 
-  // Example safe spots near the city
-  const safeSpots = [
-    { name: "Community Shelter", lat: lat + 0.01, lon: lon + 0.01 },
-    { name: "Safe Zone", lat: lat - 0.01, lon: lon - 0.01 }
-  ];
-
-  // Add markers
-  safeSpots.forEach(spot => {
-    const marker = L.marker([spot.lat, spot.lon]).addTo(map).bindPopup(spot.name);
-    mapMarkers.push(marker);
-  });
-
-  // Update emergency info
-  const cityName = place.properties.name;
-  const disasters = disasterData[cityName] || ["General Emergencies"];
-  const recommendedSpot = safeSpots[0];
-
-  infoDiv.innerHTML = `
-    <p><strong>City:</strong> ${cityName}, ${place.properties.country || ""}</p>
-    <p><strong>Common Natural Disasters:</strong> ${disasters.join(", ")}</p>
-    <p><strong>Recommended Emergency Spot:</strong> ${recommendedSpot.name}</p>
+  // Overpass query to find OSM elements tagged as shelters/emergency facilities
+  const query = `
+    [out:json][timeout:25];
+    (
+      node["amenity"="shelter"](${bbox});
+      way["amenity"="shelter"](${bbox});
+      node["emergency"="fire_station"](${bbox});
+      node["emergency"="hospital"](${bbox});
+      node["building"="public"](${bbox});
+    );
+    out center;
   `;
+
+  try {
+    const url = `https://overpass-api.de/api/interpreter?data=${encodeURIComponent(query)}`;
+    const res = await fetch(url);
+    const data = await res.json();
+
+    // Clear old markers
+    mapMarkers.forEach(m => map.removeLayer(m));
+    mapMarkers = [];
+
+    let shelters = [];
+
+    if (data.elements) {
+      data.elements.forEach(el => {
+        let shelterLat = el.lat || el.center?.lat;
+        let shelterLon = el.lon || el.center?.lon;
+        let name = el.tags?.name || "Shelter";
+        if (shelterLat && shelterLon) {
+          shelters.push({ name, lat: shelterLat, lon: shelterLon });
+        }
+      });
+    }
+
+    // If no real shelters found, fallback to generic ones
+    if (shelters.length === 0) {
+      shelters = [
+        { name: "Community Shelter", lat: lat + 0.01, lon: lon + 0.01 },
+        { name: "Emergency Center", lat: lat - 0.01, lon: lon - 0.01 }
+      ];
+    }
+
+    // Add markers
+    shelters.forEach(spot => {
+      const marker = L.marker([spot.lat, spot.lon])
+                      .addTo(map)
+                      .bindPopup(spot.name);
+      mapMarkers.push(marker);
+    });
+
+    // Sort by closest distance
+    shelters.sort((a, b) => {
+      const da = Math.hypot(a.lat - lat, a.lon - lon);
+      const db = Math.hypot(b.lat - lat, b.lon - lon);
+      return da - db;
+    });
+
+    const recommended = shelters[0];
+
+    infoDiv.innerHTML = `
+      <p><strong>City:</strong> ${place.properties.name}, ${place.properties.country || ""}</p>
+      <p><strong>Nearest Shelter:</strong> ${recommended.name}</p>
+      <p><em>Showing ${shelters.length} locations within ~5km</em></p>
+    `;
+  } catch (err) {
+    console.error("Overpass error:", err);
+    infoDiv.innerHTML = `
+      <p>Error finding shelters.</p>
+    `;
+  }
 }
