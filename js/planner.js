@@ -8,30 +8,35 @@ const cityInput = document.getElementById('cityInput');
 const suggestions = document.getElementById('suggestions');
 let mapMarkers = [];
 
-// Fetch city suggestions from Nominatim API
+// Debounce input to avoid too many API calls
 let debounceTimer;
 cityInput.addEventListener('input', () => {
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(fetchCitySuggestions, 300); // Wait 300ms after typing
+  debounceTimer = setTimeout(fetchCitySuggestions, 300); // 300ms delay
 });
 
+// Fetch city suggestions from Photon API
 async function fetchCitySuggestions() {
   const value = cityInput.value.trim();
   suggestions.innerHTML = '';
   if (!value) return;
 
   try {
-    const url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=5&q=${encodeURIComponent(value)}`;
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(value)}&limit=5`;
     const res = await fetch(url);
     const data = await res.json();
 
-    data.forEach(place => {
-      if (!place.type.includes("city") && !place.type.includes("town") && !place.type.includes("village")) return;
+    if (!data.features) return;
+
+    data.features.forEach(place => {
+      // Only keep cities or towns
+      if (!place.properties.city && !place.properties.name) return;
+
       const li = document.createElement('li');
-      li.textContent = place.display_name;
+      li.textContent = place.properties.name + (place.properties.country ? `, ${place.properties.country}` : '');
       li.className = 'p-2 cursor-pointer hover:bg-gray-200';
       li.onclick = () => {
-        cityInput.value = place.display_name;
+        cityInput.value = li.textContent;
         suggestions.innerHTML = '';
         showSafeSpots(place);
       };
@@ -43,9 +48,8 @@ async function fetchCitySuggestions() {
 }
 
 // Show example safe spots on the map
-function showSafeSpots(city) {
-  const lat = parseFloat(city.lat);
-  const lon = parseFloat(city.lon);
+function showSafeSpots(place) {
+  const [lon, lat] = place.geometry.coordinates;
 
   map.setView([lat, lon], 12);
 
